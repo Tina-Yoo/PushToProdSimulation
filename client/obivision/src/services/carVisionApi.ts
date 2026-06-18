@@ -9,6 +9,7 @@ import type {
   ClaudeVisionCheckResult,
   FinalSummarizedResultRequest,
   FinalSummarizedResultResponse,
+  DamageSummaryImageResponse,
 } from "@/types/api";
 import estimateTypeMatch from "@/asset/estimateTypeMatch.json";
 
@@ -329,6 +330,30 @@ export async function finalSummarizedResult(
   if (!response.ok) {
     throw new CarVisionApiError(
       `Final summarized result failed: ${response.statusText}`,
+      response.status
+    );
+  }
+
+  return response.json();
+}
+
+export async function getDamageSummaryImage(
+  finalResult: FinalSummarizedResultResponse
+): Promise<DamageSummaryImageResponse> {
+  const response = await fetch(
+    `${COMMENT_API_BASE_URL}/api/v1/damage-summary-marked-image`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(finalResult),
+    }
+  );
+
+  if (!response.ok) {
+    throw new CarVisionApiError(
+      `Damage summary image generation failed: ${response.statusText}`,
       response.status
     );
   }

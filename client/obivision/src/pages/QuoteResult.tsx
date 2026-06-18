@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Redirect, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -7,6 +7,8 @@ import { FileText, X } from "lucide-react";
 import { useQuoteContext } from "@/store/QuoteContext";
 import { useImageZoom } from "@/hooks/useImageZoom";
 import QuoteExportModal from "@/components/QuoteExportModal";
+import { getDamageSummaryImage } from "@/services/carVisionApi";
+import type { DamageSummaryImageResponse } from "@/types/api";
 import obigoCI from "@/asset/Obigo_CI_vertical_for_web(306x500).png";
 
 export default function QuoteResult() {
@@ -18,12 +20,40 @@ export default function QuoteResult() {
     alt: string;
   } | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [summaryImage, setSummaryImage] = useState<DamageSummaryImageResponse | null>(null);
 
   const { overlayRef, imageHandlers, imageStyle, didDrag } = useImageZoom(!!selectedImage);
+
+  // Load damage summary image
+  useEffect(() => {
+    if (!finalResult) return;
+
+    const fetchSummaryImage = async () => {
+      try {
+        const response = await getDamageSummaryImage(finalResult);
+        setSummaryImage(response);
+      } catch (error) {
+        console.error("Failed to load damage summary image:", error);
+      }
+    };
+
+    fetchSummaryImage();
+  }, [finalResult]);
 
   if (!finalResult) {
     return <Redirect to="/request" />;
   }
+
+  // 디버깅: 신뢰도 값 확인
+  console.log("=== Confidence Debug ===");
+  console.log("Overall confidence:", finalResult.analysis_result.overall_confidence);
+  console.log("Damage sections confidence:");
+  finalResult.damage_sections.forEach((section, idx) => {
+    console.log(`  [${idx}] ${section.panel_label}:`, {
+      confidence: section.confidence,
+      confidence_percent: section.confidence_percent,
+    });
+  });
 
   // 사진 맵 생성
   const photosByName = Object.fromEntries(
@@ -119,11 +149,18 @@ export default function QuoteResult() {
                   </span>
                 </div>
               </div>
-              {finalResult.analysis_result.summary && (
-                <p className="mt-3 text-sm text-gray-700 border-t pt-3">
-                  {finalResult.analysis_result.summary}
+              <div className="mt-3 text-sm text-gray-700 border-t pt-3 space-y-1">
+                <p>
+                  총 {finalResult.analysis_result.total_damage_count}건의 파손이 검출되었습니다.
                 </p>
-              )}
+                <p>
+                  이 중 {finalResult.analysis_result.estimate_damage_count}건이 견적에 포함되었으며,{" "}
+                  {finalResult.analysis_result.review_damage_count}건은 추가 검토가 필요합니다.
+                </p>
+                <p>
+                  {finalResult.analysis_result.image_count}장의 사진을 분석하여 AI가 자동으로 견적을 산출했습니다.
+                </p>
+              </div>
             </div>
 
             {/* 손상 항목 리스트 */}
@@ -236,6 +273,41 @@ export default function QuoteResult() {
 
           {/* Main Content */}
           <main className="space-y-6">
+            {/* 차량 손상 요약 이미지 */}
+            {summaryImage && (
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">차량 손상 요약</h2>
+                <div className="flex justify-center">
+                  <img
+                    src={`data:${summaryImage.content_type};base64,${summaryImage.data}`}
+                    alt="차량 손상 요약"
+                    className="max-w-full h-auto"
+                  />
+                </div>
+                {summaryImage.marker_count > 0 && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <p className="text-sm text-gray-600 mb-2">
+                      손상 표시: 총 {summaryImage.marker_count}개
+                    </p>
+                    <div className="flex gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-red-600"></div>
+                        <span className="text-gray-700">견적 포함</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-orange-600"></div>
+                        <span className="text-gray-700">추가 검토 필요</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-gray-600"></div>
+                        <span className="text-gray-700">견적 제외</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* 견적 총액 */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex items-end justify-between">

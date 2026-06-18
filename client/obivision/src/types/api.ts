@@ -253,3 +253,26 @@ export interface FinalSummarizedResultRequest {
   estimate_id?: string | null;
   vehicle_info?: { vehicle_name?: string } | null;
 }
+
+// ============ Damage Summary Marked Image ============
+export interface DamageSummaryMarker {
+  marker_no: number;
+  damage_item_id: string;
+  panel: string;
+  panel_label: string;
+  damage_type_labels: string[];
+  confidence_percent: number;
+  requires_review: boolean;
+  included_in_estimate: boolean;
+  status: "included" | "needs_review" | "excluded";
+  x_percent: number;
+  y_percent: number;
+}
+
+export interface DamageSummaryImageResponse {
+  filename: string;
+  content_type: string;
+  data: string; // base64
+  marker_count: number;
+  markers: DamageSummaryMarker[];
+}

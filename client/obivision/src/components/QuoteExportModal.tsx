@@ -122,9 +122,18 @@ export default function QuoteExportModal({ onClose }: QuoteExportModalProps) {
               </h1>
 
               <div className="mb-6">
-                <p className="text-sm text-gray-700 leading-relaxed mb-4">
-                  {finalResult.analysis_result.summary || "요약 정보가 없습니다."}
-                </p>
+                <div className="text-sm text-gray-700 leading-relaxed mb-4 space-y-1">
+                  <p>
+                    총 {finalResult.analysis_result.total_damage_count}건의 파손이 검출되었습니다.
+                  </p>
+                  <p>
+                    이 중 {finalResult.analysis_result.estimate_damage_count}건이 견적에 포함되었으며,{" "}
+                    {finalResult.analysis_result.review_damage_count}건은 추가 검토가 필요합니다.
+                  </p>
+                  <p>
+                    {finalResult.analysis_result.image_count}장의 사진을 분석하여 AI가 자동으로 견적을 산출했습니다.
+                  </p>
+                </div>
                 <div className="text-sm text-gray-600 space-y-1">
                   <p>
                     • 총 손상 개수: {finalResult.analysis_result.total_damage_count}개
@@ -197,6 +206,21 @@ export default function QuoteExportModal({ onClose }: QuoteExportModalProps) {
               <h1 className="text-2xl font-bold text-center mb-8 border-b-2 border-blue-700 pb-4">
                 수리 견적서
               </h1>
+
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <div className="text-sm text-gray-700 leading-relaxed space-y-1">
+                  <p>
+                    총 {finalResult.analysis_result.total_damage_count}건의 파손이 검출되었습니다.
+                  </p>
+                  <p>
+                    이 중 {finalResult.analysis_result.estimate_damage_count}건이 견적에 포함되었으며,{" "}
+                    {finalResult.analysis_result.review_damage_count}건은 추가 검토가 필요합니다.
+                  </p>
+                  <p>
+                    {finalResult.analysis_result.image_count}장의 사진을 분석하여 AI가 자동으로 견적을 산출했습니다.
+                  </p>
+                </div>
+              </div>
 
               <table className="w-full text-sm mb-6">
                 <thead className="bg-blue-700 text-white">
