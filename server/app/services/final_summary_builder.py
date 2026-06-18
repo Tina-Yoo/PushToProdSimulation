@@ -149,7 +149,10 @@ def _build_damage_section(idx: int, panel: Dict[str, Any]) -> DamageSection:
             EvidenceImage(image_name=img)
             for img in (verdict.get("evidence_images") or [])
         ],
-        damage_confidences=verdict.get("damage_confidences") or {},
+        damage_confidences={
+            k: v for k, v in (verdict.get("damage_confidences") or {}).items()
+            if v is not None
+        },
         damage_verdicts=verdict.get("damage_verdicts") or [],
         requires_review=bool(review_reasons),
         requires_review_reasons=review_reasons,
