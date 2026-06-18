@@ -1,44 +1,79 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
-
-
-# --------------------------------------------------------------------------- #
-# Output of POST /api/v1/comment-image-comparison-result.
-# Only the fields the Claude Vision check consumes are modelled here; extra
-# keys are allowed so the upstream comparator can evolve independently.
-# (Handoff §3/§4: comparison_result feeds pre-vision panel targeting.)
-# --------------------------------------------------------------------------- #
-class CommentClaim(BaseModel):
-    raw_text: str | None = None
-    panel: str | None = None
-    damage_type: str | None = None
-
-    model_config = {"extra": "allow"}
+from pydantic import BaseModel, ConfigDict
 
 
-class MatchedEvidence(BaseModel):
-    panel_name: str | None = None
-    image_name: str | None = None
-    overlay_image_ref: str | None = None
+class ClaimInput(BaseModel):
+    model_config = ConfigDict(extra="allow")
 
-    model_config = {"extra": "allow"}
-
-
-class ClaimResult(BaseModel):
-    claim_id: str | None = None
-    claim: CommentClaim = Field(default_factory=CommentClaim)
-    match_status: str | None = None
-    matched_evidence: list[MatchedEvidence] = Field(default_factory=list)
-
-    model_config = {"extra": "allow"}
+    claim_id: str
+    side: Optional[str] = None
+    area: Optional[str] = None
+    panel: Optional[str] = None
+    damage_type: Optional[str] = None
+    severity: Optional[str] = None
+    raw_text: Optional[str] = None
+    confidence: Optional[float] = None
 
 
-class CommentImageComparisonResponse(BaseModel):
-    estimate_id: str | None = None
-    claim_results: list[ClaimResult] = Field(default_factory=list)
-    data: dict[str, Any] = Field(default_factory=dict)
+class Evidence(BaseModel):
+    evidence_type: str
+    image_index: Optional[int] = None
+    image_name: Optional[str] = None
+    vehicle_view_type: Optional[str] = None
+    panel_name: Optional[str] = None
+    damage_type: Optional[str] = None
+    damage_types: List[str] = []
+    matched_damage_types: List[str] = []
+    box_xywh: Optional[List[float]] = None
+    requires_review_reasons: List[Any] = []
+    reason: str = ""
 
-    model_config = {"extra": "allow"}
+
+class VisionTarget(BaseModel):
+    target_type: str
+    claim_id: str
+    image_index: Optional[int] = None
+    image_name: Optional[str] = None
+    vehicle_view_type: Optional[str] = None
+    panel_name: Optional[str] = None
+    overlay_image_ref: Optional[str] = None
+    candidate_confidence: Optional[float] = None
+    question_for_vision: Optional[str] = None
+    instruction: Optional[str] = None
+
+
+class ClaimComparisonResult(BaseModel):
+    claim_id: str
+    claim: ClaimInput
+    match_status: str
+    match_confidence: float
+    matched_evidence: List[Evidence] = []
+    candidate_evidence: List[Evidence] = []
+    unmatched_reason: Optional[str] = None
+    vision_review_required: bool
+    vision_targets: List[VisionTarget] = []
+
+
+class VisionHandoff(BaseModel):
+    required: bool
+    reason: Optional[str] = None
+    targets: List[VisionTarget] = []
+
+
+class ComparisonRequest(BaseModel):
+    estimate_id: Optional[str] = None
+    comment: Optional[str] = None
+    claims: List[ClaimInput]
+    exterior_damage_estimate: Dict[str, Any]
+
+
+class ComparisonResponse(BaseModel):
+    estimate_id: Optional[str] = None
+    comparison_stage: str = "pre_vision_targeting"
+    overall_status: str
+    summary: str
+    claim_results: List[ClaimComparisonResult]
+    vision_handoff: VisionHandoff

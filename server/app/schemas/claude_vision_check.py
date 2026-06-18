@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from app.schemas.comparison import CommentImageComparisonResponse
+from app.schemas.comparison import ComparisonResponse
 
 
 class ClaudeVisionCheckResultRequest(BaseModel):
@@ -12,7 +12,7 @@ class ClaudeVisionCheckResultRequest(BaseModel):
     # The original natural-language receptionist comment (corroboration + report header).
     comment: str | None = None
     # Output of POST /api/v1/comment-image-comparison-result (pre-vision targeting).
-    comparison_result: CommentImageComparisonResponse
+    comparison_result: ComparisonResponse
     # The same exterior-damage/estimate JSON (geometry parts + images.* base64).
     exterior_damage_estimate: dict[str, Any] = Field(default_factory=dict)
     # Optional image bytes (image_name/filename -> base64) for when the estimate

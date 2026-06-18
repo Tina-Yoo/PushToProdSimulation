@@ -7,12 +7,12 @@ import httpx
 from pydantic import BaseModel, ValidationError
 
 from app.config import ANTHROPIC_API_KEY, CLAUDE_MODEL
-from app.schemas.comparison import CommentImageComparisonResponse
+from app.schemas.comparison import ComparisonResponse
 from app.schemas.claude_vision_check import (
     ClaudeVisionCheckResultRequest,
     ClaudeVisionCheckResultResponse,
 )
-from app.services.comment_image_comparator import (
+from app.services.vision_helpers import (
     build_overlay_lookup,
     extract_geometry_images,
     extract_image_identity_tokens,
@@ -137,7 +137,7 @@ def build_panel_evidence(estimate: dict[str, Any]) -> dict[str, dict[str, list[s
 
 
 def build_comment_index(
-    comparison: CommentImageComparisonResponse,
+    comparison: ComparisonResponse,
 ) -> tuple[dict[str, dict[str, Any]], list[dict[str, Any]]]:
     """(normalized_panel -> claim metadata, comment_claims echo list)."""
     panel_to_claim: dict[str, dict[str, Any]] = {}

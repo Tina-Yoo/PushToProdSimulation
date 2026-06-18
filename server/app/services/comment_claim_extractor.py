@@ -87,6 +87,8 @@ _DAMAGE_ALIASES: dict[str, str] = {
     "touchup_paint": "TouchupPaint",
     "터치업": "TouchupPaint",
     "crush": "Crushed",
+    "dent": "Crushed",
+    "dented": "Crushed",
     "찌그러짐": "Crushed",
     "찌그러든": "Crushed",
     "crack": "Crack",
